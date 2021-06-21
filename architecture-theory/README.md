@@ -48,7 +48,17 @@ Architecture is mainly concerned about three things:
 - [6. Architecture: Policy and Level](#6-architecture-policy-and-level)
 - [7. Business Rules](#7-business-rules)
 - [8. The Clean Architecture](#8-the-clean-architecture)
-- [9. Presenters and Humble Objects](#9-presenters-and-humble-objects)
+- [9. Humble Objects](#9-humble-objects)
+  - [9.1. Presenters and Views](#91-presenters-and-views)
+  - [9.2. Database Gateways](#92-database-gateways)
+  - [9.3. Data Mappers](#93-data-mappers)
+  - [9.4. Service Listeners](#94-service-listeners)
+- [10. The Testing Component](#10-the-testing-component)
+- [11. Types of Architectures](#11-types-of-architectures)
+  - [11.1. Layered Architectures](#111-layered-architectures)
+  - [11.2. Feature-based Architectures](#112-feature-based-architectures)
+  - [11.3. Ports and Adapters Architecture](#113-ports-and-adapters-architecture)
+  - [11.4. Component-based Architectures](#114-component-based-architectures)
 - [Well-designed Architectures](#well-designed-architectures)
   - [Financial Data Summarizer](#financial-data-summarizer)
     - [Separation of Concerns](#separation-of-concerns)
@@ -398,6 +408,8 @@ To draw boundary lines, you first partition the system into components. Some of 
 
 This is an application of the Dependency Inversion Principle and the Stable Abstractions Principle. Dependency arrows are arranged to point from lower-level details to higher-level abstractions.
 
+> WARNING: Boundaries, when fully implemented, are expensive. But at the same time, when thes boundaries are ignored, they are very expensive to add in later. As an architect then, you need to determine where the architectural boundaries lie, and which should be fully implemented, which ones partially implemented (all the classes required to create independent components, but packed up in a single component), and which ones should be ignored.
+
 ## 5.1. Boundary Crossing
 
 A boundary crossing is a function on one side of the boundary calling a function on the other side and passing along some data. The trick to creating an appropriate boundary crossing is to manage the source code dependencies.
@@ -497,7 +509,80 @@ A typical architecture is shown below:
 
 Notice the direction of the dependencies. All dependencies cross the boundary lines pointing inward, following the dependency rule.
 
-# 9. Presenters and Humble Objects
+# 9. Humble Objects
+
+The *Humble Object* pattern is a design pattern that splits hard to test behaviors into two classes. One of those clases is humble; it contains all the had to test beaviors stripped down to their barest essence. The other module contains all the testable behaviors that were stripped out of the humble object.
+
+This separation between testable and non-testable parts often define architectural boundaries.
+
+## 9.1. Presenters and Views
+
+For example, GUIs are hard to test. We can separate this in two components: the *View* and the *Presenter*.
+
+The View is the humble object that is hard to test. The code in this object is kept as simple as possible. It displays the information, but does not process the data.
+
+The Presenter is the testable object. It accepts data from the application and formats it for presentation so that the View can simply render it.
+
+## 9.2. Database Gateways
+
+Between the use case interactors and the database are the database gateways. These gateways are polymorphic interfaces that contain methods for every `create`, `read`, `update` or `delete` operation that can be performed by the application of the database.
+
+We do not allow SQL in the use cases layer. Instead, we use gateway interfaces with the appropriate methods. Those gateways are implemented by classes in the database layer. That implemention is the humble object.
+
+## 9.3. Data Mappers
+
+ORMs form another kind of *Humble Object* boundary between the database gateway interfaces and the database. ORM systems should reside in the database layer.
+
+## 9.4. Service Listeners
+
+Service listeners will receive data from the service interface and format it into a simple data structure that is then passed across the service boundary to be used by the application.
+
+# 10. The Testing Component
+
+Tests are part of the system, and they participate in the architecture just like every other part of the system does. Tests, by their very nature, follow the Dependency Rule; they are very detailed and concrete, and they always depend inward toward the code being tested. They can be thought of as the outermost circle in the architecture. Nothing within the system depends on the tests, and the tests always depend inward on the components of the system.
+
+A very common issue is the *Fragile Tests Problem*, where changes to common system components cause tests to break due to strong coupling between the tests and the system.
+
+The solution is to design for testability. The golden rule is ***don't depend on volatile things***. Therefore, design the system and the tests so that business rules can be tested without using the volatile components.
+
+To accomplish this, create a specific API that the tests can use to verify all the business rules. This API should have superpowers that allow the tests to avoid security constraints, bypass expensive resources (such as databases), and force the system into particular testable states. This API will be a superset of the suite of *interactors* and *interface adapters* that are used by the UI. The goal is to decouple the *structure* of the tests from the *structure* of the application.
+
+# 11. Types of Architectures
+
+## 11.1. Layered Architectures
+
+Separate code based on what it does from a technical perspective. A layer for the UI, a layer for the business logic and a layer for persistence.
+
+<img src='imgs/by-layer.png'>
+
+- Good way to get started, very quick to set up and running without a huge amount of complexity.
+- Once software grows in scale and complexity, these three buckets of code isn't sufficient, and you will need to think about modularizing further.
+- Layered architectures do not scream anything about the business domain.
+
+## 11.2. Feature-based Architectures
+
+Vertical slicing, based on related features, domain concepts or aggregate rules.
+
+<img src='imgs/by-feature.png'>
+
+- Feature-based architectures scream something about the business domain.
+- It's easier to find all the code that you need to modify when a use case changes.
+
+## 11.3. Ports and Adapters Architecture
+
+Ports and adapters, the hexagonal architecture, boundaries/controllers/entities and MVC models aim to create architectures where business/domain-focused code is independent and separate from the technical implementation details such as frameworks and databases.
+
+These architectures are dividided in a *domain* circle and a *infrastructure* circle, and the outside depends on the inside, not the other way around.
+
+<img src='imgs/by-ports.png'>
+
+## 11.4. Component-based Architectures
+
+It's a service-centric view of a software system. The goal is to bundle all of the responsibilities related to a single coarse-grained component into a single package. In essence, this approach bundles up the business logic and persistence code into a single thing.
+
+<img src='imgs/by-component.png'>
+
+- The main benefit of this approach is that if you're writing code that needs to do something with a specific responsibility, there's just one place to go.
 
 # Well-designed Architectures
 
