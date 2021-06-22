@@ -59,6 +59,9 @@ Architecture is mainly concerned about three things:
   - [11.2. Feature-based Architectures](#112-feature-based-architectures)
   - [11.3. Ports and Adapters Architecture](#113-ports-and-adapters-architecture)
   - [11.4. Component-based Architectures](#114-component-based-architectures)
+  - [12. The Architecture Design Process](#12-the-architecture-design-process)
+  - [12.1. Determine the Actors and Use Cases](#121-determine-the-actors-and-use-cases)
+  - [12.2. Component Architecture](#122-component-architecture)
 - [Well-designed Architectures](#well-designed-architectures)
   - [Financial Data Summarizer](#financial-data-summarizer)
     - [Separation of Concerns](#separation-of-concerns)
@@ -583,6 +586,40 @@ It's a service-centric view of a software system. The goal is to bundle all of t
 <img src='imgs/by-component.png'>
 
 - The main benefit of this approach is that if you're writing code that needs to do something with a specific responsibility, there's just one place to go.
+
+## 12. The Architecture Design Process
+
+Let's work with a case study.
+
+Case: software for a website that sells videos.
+
+We have a batch of videos we want to sell. We sell them, on the web, to both individuals and businesses. Individuals can pay one price to stream the videos, and another, higher price to download those videos and own them permanently. Business licenses are streaming only, and are purchased in batches that allow quantity discounts.
+
+Individuals typically act as both the viewers and the purchasers. Businesses, in contrast, often have people who buy the videos that other people will watch.
+
+Video authors need to supply their video files, written descriptions, and ancillary files with exams, problems, solutions, source code, and other materials.
+
+Administrators need to add new video series, add and delete videos to and from the series, and establish prices for various licenses.
+
+## 12.1. Determine the Actors and Use Cases
+
+According to the Single Responsibility Principle, the actors are the primary sources of change for the system. Every time a new feature is added, or some existing feature is changed, that step will be taken to serve one of these actors. Therefore we want to partition the system such that a change to one actor does not affect any of the other actors.
+
+<img src='imgs/use-cases.png'>
+
+## 12.2. Component Architecture
+
+<img src='imgs/components.png'>
+
+Notice the architecture boundaries dividing the system into `Views`, `Presenters`, `Interactors` and `Controllers`.
+
+Notice the `Purchaser` and `Viewer` views implement a `CatalogView` interface.
+
+The flow of control proceeds from right to left. Input occurs at the controllers, and that input is processed into a result by the interactors. The presenters then format the results, and the views display those presentations.
+
+Notice that most of the arrows flow from left to right. This is because the architecture is following the ***Dependency Rule***. All dependencies cross the boundary lines in one direction, and they always point toward the components containing the higher-level policy.
+
+Also notice that the *using* relationships point along the flow of control, and that the *inheritance* relationships point against the flow of control. This is the Open-Closed Principle making sure that the dependencies flow in the right direction, and that changes to low-level details do not ripple upward to affect higher-level policies.
 
 # Well-designed Architectures
 
