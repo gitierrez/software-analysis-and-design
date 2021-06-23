@@ -95,3 +95,5 @@ We can divide error management code into two different areas.
 Properly written unit tests should mock any external systems, like the repository or the API. That's why we need integration tests, to raise issues that were masked by mocks.
 
 # 5. Integration with External Systems
+
+The clean architecture forms a very loose coupling between the use cases and the repository, being connected only through the API exposed by the object and not to the real implementation. In other words, the use cases are polymorphic with respect to the method `list`.
