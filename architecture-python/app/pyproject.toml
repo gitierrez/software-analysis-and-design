@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "rentomatic"
+version = "0.1.0"
+description = ""
+authors = ["Juan Gutierrez <jgutierrezh0@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pytest-cov = "^2.12.1"
+Flask = "^2.0.1"
+pytest-flask = "^1.2.0"
+SQLAlchemy = "^1.4.19"
+psycopg2 = "^2.9.1"
+docker-compose = "^1.29.2"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
