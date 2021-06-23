@@ -48,6 +48,11 @@
   - [4.2. Horizontal Formatting](#42-horizontal-formatting)
     - [4.2.1. Horizontal Openness and Density](#421-horizontal-openness-and-density)
   - [4.3. Conventions](#43-conventions)
+- [5. Objects and Data Structures](#5-objects-and-data-structures)
+  - [5.1. The Law of Demeter](#51-the-law-of-demeter)
+  - [5.2. Hybrid Structures](#52-hybrid-structures)
+  - [5.3. Data Transfer Objects](#53-data-transfer-objects)
+  - [5.4. Active Records](#54-active-records)
 
 # 1. Naming
 
@@ -448,3 +453,99 @@ When working in a team, set up a collection of conventions to follow. The object
 - Variable naming
 - Method naming
 
+# 5. Objects and Data Structures
+
+There is a fundamental difference between objects and data structures. Objects hide their data behind abstractions and expose functions that operate on that data. Data structures expose their data and have no meaningful functions.
+
+```python
+# procedural
+
+class Rectangle:
+    height: float
+    width: float
+
+class Circle:
+    center: Point
+    radius: float
+    
+class Geometry:
+    PI = 3.14159
+
+    def area(self, shape):
+        if isinstance(shape, Rectangle):
+            return shape.height * shape.width
+        elif isinstance(shape, Circle):
+            return self.PI * shape.radius * shape.radius
+```
+
+```python
+# object-oriented
+
+class Rectangle:
+    height: float
+    width: float
+
+    def area(self):
+        return self.height * self.width
+
+class Circle:
+    PI = 3.14159
+
+    center: Point
+    radius: float
+
+    def area(self):
+        return self.PI * self.radius * self.radius
+```
+
+This exposes the fundamental dichotomy between objects and data structures:
+
+- Procedural code (code using data structures) makes it easy to add new functions without changing the existing data strcutures, but makes it hard to add new data structures because all the functions must change.
+- Object-oriented code makes it easy to add new classes without changing existing functions, but makes it hard to add new functions because all the classes must change.
+
+If you want the flexibility to add new data types, use object-oriented. If you want the flexibility to add new behaviors, use procedural.
+
+## 5.1. The Law of Demeter
+
+The *Law of Demeter* says that a module should not know about the innards of the *objects* it manipulates.
+
+Objects should hide their data and expose operations. This means that an object should not expose its internal structure through accessors because to do so is to expose, rather than to hide, its internal structure.
+
+More precisely, the Law of Demeter says that a method $f$ of a class $C$ should only call the methods of these:
+
+- $C$
+- An object created by $f$
+- An object passed as an argument to $f$
+- An object held in an instance variable of $C$
+
+The methods should *not* invoke methods on objects that are returned by any of the allowed functions. In other words, talk to friends, not to strangers.
+
+## 5.2. Hybrid Structures
+
+Hybrid structures are classes that are half object and half data structure. They have functions that do significant things, and they also have either public variables or public accessors and mutators that make private variables public.
+
+Such hybrids make it hard to add new functions but also make it hard to add new data structures. They are the worst of both worlds.
+
+## 5.3. Data Transfer Objects
+
+Data Transfer Objects (DTOs) are the quintessential form of a data structure. A DTO is a class with public variables and no functions.
+
+DTOs are very useful, especially when communicating with databases or parsing messages from sockets. They often become the first in a series of translation stages that convert raw data in a database into objects in the application code.
+
+```python
+# example of a DTO
+@dataclass
+class Address:
+    street: str
+    city: str
+    state: str
+    zip_code: str
+```
+
+## 5.4. Active Records
+
+Active Records are special forms of DTOs. They are data structures with public variables, but they typically have navigational methods like `save` and `find`. Typically these Active Records are direct translations from database tables, or other data sources.
+
+Unfortunately, some developers treat these data structures as objects by putting business rule methods in them. This creates the undesirable Hybrid Structures.
+
+The solution is to treat the Active Record as a data structure and to create separate objects that contain the business rules that hide their internal data (which are probably just instances of the Active Record).
