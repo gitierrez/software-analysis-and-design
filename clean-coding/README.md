@@ -53,6 +53,71 @@
   - [5.2. Hybrid Structures](#52-hybrid-structures)
   - [5.3. Data Transfer Objects](#53-data-transfer-objects)
   - [5.4. Active Records](#54-active-records)
+- [6. Error Handling](#6-error-handling)
+  - [6.1. Provide Context with Exceptions](#61-provide-context-with-exceptions)
+  - [6.2. Define Exception Classes in Terms of a Caller's Needs](#62-define-exception-classes-in-terms-of-a-callers-needs)
+  - [6.3. Don't Return Null](#63-dont-return-null)
+    - [6.3.1. Special Case Pattern](#631-special-case-pattern)
+- [7. Boundaries](#7-boundaries)
+  - [7.1. Using Third-Party Code](#71-using-third-party-code)
+  - [7.2. Using Code That Does Not Yet Exist](#72-using-code-that-does-not-yet-exist)
+- [8. Unit Tests](#8-unit-tests)
+  - [8.1. The Three Laws of Test-Driven Development](#81-the-three-laws-of-test-driven-development)
+  - [8.2. Keeping Tests Clean](#82-keeping-tests-clean)
+  - [8.3. Single Concept per Test](#83-single-concept-per-test)
+  - [8.4. F.I.R.S.T.](#84-first)
+- [9. Classes](#9-classes)
+  - [9.1. Class Organization](#91-class-organization)
+  - [9.2. Classes Should Be Small](#92-classes-should-be-small)
+    - [9.2.1. The Single Responsibility Principle](#921-the-single-responsibility-principle)
+    - [9.2.2. Cohesion](#922-cohesion)
+    - [9.3. Isolation from Change](#93-isolation-from-change)
+- [10. Smells and Heuristics](#10-smells-and-heuristics)
+  - [10.1. Comments](#101-comments)
+    - [C1: Code Change Metadata](#c1-code-change-metadata)
+    - [C2: Obsolete Comments](#c2-obsolete-comments)
+    - [C3: Redundant Comments](#c3-redundant-comments)
+    - [C4: Commented-out Code](#c4-commented-out-code)
+  - [10.2. Environment](#102-environment)
+    - [E1: Multi-step Build](#e1-multi-step-build)
+    - [E2: Multi-step Tests](#e2-multi-step-tests)
+  - [10.3. Functions](#103-functions)
+    - [F1: Too Many Arguments](#f1-too-many-arguments)
+    - [F2: Mutation of Input Arguments](#f2-mutation-of-input-arguments)
+    - [F3: Flag Arguments](#f3-flag-arguments)
+    - [F4: Dead Functions](#f4-dead-functions)
+  - [10.4. General](#104-general)
+    - [G1: Multiple Languages in One Source File](#g1-multiple-languages-in-one-source-file)
+    - [G2: Failure to Test Boundary Conditions](#g2-failure-to-test-boundary-conditions)
+    - [G3: Duplicate Code](#g3-duplicate-code)
+    - [G4: Code at Wrong Level of Abstraction](#g4-code-at-wrong-level-of-abstraction)
+    - [G5: Too Much Information](#g5-too-much-information)
+    - [G6: Dead Code](#g6-dead-code)
+    - [G7: Vertical Separation](#g7-vertical-separation)
+    - [G8: Inconsistency](#g8-inconsistency)
+    - [G9: Clutter](#g9-clutter)
+    - [G10: Artificial Coupling](#g10-artificial-coupling)
+    - [G11: Feature Envy](#g11-feature-envy)
+    - [G12: Selector Arguments](#g12-selector-arguments)
+    - [G13: Misplaced Responsibility](#g13-misplaced-responsibility)
+    - [G14: Inappropriate Static Methods](#g14-inappropriate-static-methods)
+    - [G15: Function Names Should Say What They Do](#g15-function-names-should-say-what-they-do)
+    - [G16: Be Precise](#g16-be-precise)
+    - [G17: Encapsulate Conditionals](#g17-encapsulate-conditionals)
+    - [G18: Negative Conditionals](#g18-negative-conditionals)
+    - [G19: Hidden Temporal Couplings](#g19-hidden-temporal-couplings)
+    - [G20: Don't Be Arbitrary](#g20-dont-be-arbitrary)
+    - [G21: Keep Configurable Data at High Levels](#g21-keep-configurable-data-at-high-levels)
+    - [G22: Avoid Transitive Navigation](#g22-avoid-transitive-navigation)
+  - [10.5. Names](#105-names)
+    - [N1: Choose Descriptive Names](#n1-choose-descriptive-names)
+    - [N2: Choose Names at the Appropriate Level of Abstraction](#n2-choose-names-at-the-appropriate-level-of-abstraction)
+    - [N3: Use Standard Nomenclature Where Possible](#n3-use-standard-nomenclature-where-possible)
+  - [10.6. Tests](#106-tests)
+    - [T1: Insufficient Tests](#t1-insufficient-tests)
+    - [T2: Ignored Tests](#t2-ignored-tests)
+    - [T3: Test Boundary Conditions](#t3-test-boundary-conditions)
+    - [T4: Bugs Tend to Congregate](#t4-bugs-tend-to-congregate)
 
 # 1. Naming
 
@@ -549,3 +614,324 @@ Active Records are special forms of DTOs. They are data structures with public v
 Unfortunately, some developers treat these data structures as objects by putting business rule methods in them. This creates the undesirable Hybrid Structures.
 
 The solution is to treat the Active Record as a data structure and to create separate objects that contain the business rules that hide their internal data (which are probably just instances of the Active Record).
+
+# 6. Error Handling
+
+Error handling is important. Things can go wrong, and when they do, we are responsible for making sure that our code does what it needs to do. However, error handling should not obscure logic.
+
+## 6.1. Provide Context with Exceptions
+
+Each exception that you throw should provide enough context to determine the source and location of an error.
+
+Create informative messages and pass them along with your exceptions. Mention the operation that failed and the type of failure.
+
+## 6.2. Define Exception Classes in Terms of a Caller's Needs
+
+When we define exception classes in an application, our most important concern should be *how they are caught*.
+
+A best practice is to create wrappers around third-party APIs, so that you define error codes that capture multiple third-party exceptions and contain useful messages tailored to your application.
+
+## 6.3. Don't Return Null
+
+Returning `null` usually ends up with `NullPointerException` somewhere in the code.
+
+If you are tempted to return `null` from a method (whether internal or third-party), consider throwing an exception or returning a **Special Case** object instead.
+
+### 6.3.1. Special Case Pattern
+
+The Special Case Pattern creates a class or configures an object so that it handles a special case for you. When you do, the client code doesn't have to deal with exceptional behavior. That behavior is encapsulated in the special case object.
+
+# 7. Boundaries
+
+We rarely control all the software in our systems. Sometimes we buy third-party packages or use open source. Other times we depend on teams in our own company to produce components or subsystems for us. Somehow we must cleanly integrate this foreign code with our own.
+
+Change happens at boundaries. Good software designs accommodate change without huge investments and rework. When we use code that is out of our control, special care must be taken to protect ourselves.
+
+Code at the boundaries needs clear separation and tests that define expectations. We should avoid letting too much of our code know about the third-party particulars.
+
+We manage third-party boundaries by having very few places in the code that refer to them. We may wrap them, or use an `Adapter` to convert from our perfect interface to the provided interface.
+
+## 7.1. Using Third-Party Code
+
+Third-party code usually has a very broad interface with plenty of capabilities. This power and flexibility is useful, but it can also be a liability.
+
+Passing this third-party code around the application causes coupling between many parts of the application and the third-party code.
+
+A clean way to use third-party code is to wrap it in a class and expose the methods required by the application, handling exceptions and validation rules inside this class. This also has the added benefit that if something within the third-party code changes, the impact to our application is contained to this class.
+
+It's also useful to create unit tests for the third-party code, to make sure that it does what we expect it to do.
+
+## 7.2. Using Code That Does Not Yet Exist
+
+Sometimes you need to start working on code that depends on other code that hasn't even been defined yet (not even its interface).
+
+In this case, the solution is the `Adapter` pattern. Create a class with the interface you *wished* the future implementation had, work with it, and then when the real implementation comes in the future you write an adapter to the interface you had defined.
+
+<img src='imgs/adapter.png'>
+
+# 8. Unit Tests
+
+## 8.1. The Three Laws of Test-Driven Development
+
+Following the laws of TDD pretty much guarantees that you have tests that will cover virtually all of our production code, and while this is desirable, it also comes with a large maintenance problem.
+
+1. You may not write production code until you have written a failing unit test.
+2. You may not write more of a unit test than is sufficient to fail, and not compiling is failing.
+3. You may not write more production code than is sufficient to pass the currently failing test.
+
+## 8.2. Keeping Tests Clean
+
+Having dirty tests is equivalent to, if not worse than, having no tests. The problem is that tests must change as the production code evolves. The dirtier the tests, the harder they are to change.
+
+*Test code is just as important as production code*. It requires thought, design, and care. It must be kept as clean as production code.
+
+Unit tests keep our code flexible, maintainable and reusable. If you have tests, you do not fear making changes to the code.
+
+The main thing that makes a unit test *clean* is **readability.** Clarity, simplicity and density of expression is what makes code readable.
+
+Tests should follow the `Build-Operate-Check` pattern: *build* the test data, *operate* on the test data, *check* that the operation yielded the expected result.
+
+## 8.3. Single Concept per Test
+
+We want to test a single concept in each test function. We don't want long test functions that go testing one miscellaneous thing after another.
+
+## 8.4. F.I.R.S.T.
+
+Clean tests follow five other rules that form the F.I.R.S.T. acronym:
+
+- **Fast**: tests should run quickly. Otherwise you are disencouraged to run them and won't feel as free to change the code.
+- **Independent**: one test should not set up the conditions for the next test. You should be able to run each test independently and in any order you like. Otherwise a failed test causes downstream ones to fail, making diagnosis difficult.
+- **Repeatable**: tests should be repeatable in any environment. Otherwise you won't be able to run the tests when the environment isn't available.
+- **Self-Validating**: tests should have a boolean output. Either they pass or fail. Otherwise tests would require long manual validations.
+- **Timely**: tests should be written just before the production code that makes them pass. Otherwise you might find the production code to be hard to test and avoid building tests for it.
+
+# 9. Classes
+
+## 9.1. Class Organization
+
+1. Public class constants
+2. Private class variables
+3. Private instance variables
+
+## 9.2. Classes Should Be Small
+
+Size in classes doesn't refer to the number of lines, but to the number of *responsibilities*.
+
+The name of the class should describe what responsibilities it fulfills. If you cannot derive a concise name for a class, then it's likely too large.
+
+As a guideline, you should be able to write a brief description of the class in less than 25 words without using the words *if*, *and*, *or* or *but*.
+
+### 9.2.1. The Single Responsibility Principle
+
+Classes should have one, and only one, *reason to change*. Classes should have one responsibility - one reason to change.
+
+### 9.2.2. Cohesion
+
+Classes should have a small number of instance variables. Each of the methods of a class should manipulate one or more of those variables. In general, the more variables a method manipulates the more cohesive that method is to its class.
+
+### 9.3. Isolation from Change
+
+If a class depends upon another class, make it depend on an interface to that class instead of the concrete class.
+
+This minimizes coupling and adheres to the Dependency Inversion Principle, which says that our classes should depend upon abstractions, not on concrete details.
+
+# 10. Smells and Heuristics
+
+## 10.1. Comments
+
+### C1: Code Change Metadata
+
+Change histories, authors, last-modified date and so on should not appear in comments. Leave this to the source control systems.
+
+### C2: Obsolete Comments
+
+Comments that are old, irrelevant and incorrect. It is best not to write a comment that will become obsolete. If you find one, update it or delete it.
+
+### C3: Redundant Comments
+
+Comments that say something that is explicit in the code. Remove them.
+
+### C4: Commented-out Code
+
+Commented-out code is an abomination. Delete it.
+
+## 10.2. Environment
+
+### E1: Multi-step Build
+
+Building a project should be a single command.
+
+### E2: Multi-step Tests
+
+Running unit tests should be a single command.
+
+## 10.3. Functions
+
+### F1: Too Many Arguments
+
+Functions should have a small number of arguments. More than three is very questionable and should be avoided.
+
+### F2: Mutation of Input Arguments
+
+If your functio must change the state of something, have it change the state of the object it is called on.
+
+### F3: Flag Arguments
+
+Boolean arguments loudly declare that the function does more than one thing, breaking the SRP.
+
+### F4: Dead Functions
+
+Methods and functions that are never called should be deleted.
+
+## 10.4. General
+
+### G1: Multiple Languages in One Source File
+
+A single source file should contain only one language.
+
+### G2: Failure to Test Boundary Conditions
+
+Look for every boundary condition and write a test for it.
+
+### G3: Duplicate Code
+
+DRY: Don't Repeat Yourself. Every duplicated code is a missed opportunity for abstraction. That duplication could probably become a function or class.
+
+### G4: Code at Wrong Level of Abstraction
+
+Base classes should have all the high-level details. Derivatives should have the low-level details. Same applies to source files, modules and components.
+
+### G5: Too Much Information
+
+Well-defined modules should have very small interfaces that allow you to do a lot with very little. Hide your data, hide your utility functions, hide your constants and your temporaries.
+
+### G6: Dead Code
+
+Code that isn't executed.
+
+- `if` statements that check for conditions that can never happen.
+- `catch` blocks of a `try` that never `throws`.
+- Utility methods that are never called.
+- `switch/case` conditions that never occur.
+
+### G7: Vertical Separation
+
+- Variables and functions should be defined close to where they are used.
+- Local variables should be declared just above their first usage and should have a small vertical scope.
+- Private functions should be defined just below their first usage. Finding a private function should just be a matter of scanning downward from the first usage.
+
+### G8: Inconsistency
+
+Principle of least surprise. If you do something a certain way, do all similar things in the same way. Stick to the conventions you use.
+
+### G9: Clutter
+
+- Remove default constructors with no implementation.
+- Remove variables that aren't used.
+- Remove functions that are never used.
+- Remove comments that add no information.
+
+### G10: Artificial Coupling
+
+Things that don't depend upon each other should not be artificially coupled. For example, general `enums` should not be contained within more specific classes because this forces the whole application to know about these more specific classes. The same goes for general purpose `static` functions being declared in specific classes.
+
+### G11: Feature Envy
+
+The methods of a class should be interested in the variables and functions of the class they belong to, and not the variables and functions of other classes.
+
+The smell is when a method uses accessors and mutators of some other object to manipulate the data within that object. It *envies* the scope of the class of the other object.
+
+### G12: Selector Arguments
+
+Selector arguments are arguments that are used to select the behavior of the function. This directly breaks the principle that a function should do only one thing.
+
+It is better to have many functions than to pass some code into a function to select the behavior.
+
+### G13: Misplaced Responsibility
+
+Code should go where the reader expects it to go.
+
+### G14: Inappropriate Static Methods
+
+If a method has a chance to behave polymorphically, it should not be static.
+
+### G15: Function Names Should Say What They Do
+
+If you have to look at the implementation (or documentation) of a function to know what it does, then you should find a better name or arrange functionality so that it can be placed in functions with better names. For example, what is the function `date.add(5)` supposed to do?
+
+### G16: Be Precise
+
+When you make a decision in your code, make sure you make it precisely. Ambiguity and imprecision in code are either a result of disagreement or laziness.
+
+- If you query for what you think is the only record in the database, make sure your code checks to be sure there aren't others.
+- If you need to deal with currency, use integers and deal with rounding appropriately.
+- If there is the possibility of concurrent update, make sure you implement some kind of locking mechanism.
+- If you decide to call a function that might return `null`, make sure you check for `null`.
+
+### G17: Encapsulate Conditionals
+
+Boolean logic is hard enough to understand without having to see it in the context of an `if` or `while` statement. Extract functions that explain the intent of the conditional.
+
+### G18: Negative Conditionals
+
+Negatives are harder to understand than positives. When possible, conditionals should be expressed as positives.
+
+### G19: Hidden Temporal Couplings
+
+Temporal coupling is when a function must be called before another one.
+
+To solve this, expose the temporal coupling by creating a bucket brigade. Each function produces a result that the next function needs, so there is no reasonable way to call them out of order.
+
+### G20: Don't Be Arbitrary
+
+Have a reason for the way you structure your code, and make sure that reason is communicated by the structure of the code. If a structure appears arbitrary, others will feel empowered to change it. If a structure appears consistently throughout the system, others will use it and preserve the convention.
+
+### G21: Keep Configurable Data at High Levels
+
+If you have constants such as a default or configuration value that is known and expected at a high level of abstraction, do not bury it in a lower-level function. Expose it as an argument to that low-level function called from the high-level function.
+
+The lower levels of the application do not own the values of these constants.
+
+### G22: Avoid Transitive Navigation
+
+If `A` collaborates with `B`, and `B` collaborates with `C`, we don't want modules that use `A` to know about `C`.
+
+We want our immediate collaborators to offer all the services we need, otherwise the architecture becomes rigid and difficult to change.
+
+## 10.5. Names
+
+### N1: Choose Descriptive Names
+
+Names in software are 90% of what makes software readable. Choose them wisely and keep them relevant.
+
+### N2: Choose Names at the Appropriate Level of Abstraction
+
+Don't pick names that communicate implementation; choose names that reflect the level of abstraction of the class or function you are working in.
+
+### N3: Use Standard Nomenclature Where Possible
+
+Follow design patterns conventions if using one, or commonly-used names in the language, like `to_string()` instead of `convert_to_string()`
+
+## 10.6. Tests
+
+### T1: Insufficient Tests
+
+A test suite should test everything that could possibly break. Use coverage tools for this.
+
+### T2: Ignored Tests
+
+Sometimes we are uncertain about a behavioral detail because the requirements are unclear, and we reflect this on missing or ignored tests.
+
+### T3: Test Boundary Conditions
+
+We often get the middle of an algorithm right, but misjudge the boundaries.
+
+### T4: Bugs Tend to Congregate
+
+When you find a bug in a function, it is wise to do an exhaustive test of that function. You'll probably find that the bug was not alone.
+
+
+
+#todo: rewrite
+
+the strategy of keeping functions small and keeping parameter lists short can sometimes lead to instance variables being used only by a subset of methods. When this happens, it almost always means that there is at least one other class trying to get out of the larger classes. You should try to separate the variables and methods into two or more classes such that the new classes are more cohesive.
