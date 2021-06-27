@@ -932,6 +932,8 @@ When you find a bug in a function, it is wise to do an exhaustive test of that f
 
 
 
+
+
 #todo: rewrite
 
 the strategy of keeping functions small and keeping parameter lists short can sometimes lead to instance variables being used only by a subset of methods. When this happens, it almost always means that there is at least one other class trying to get out of the larger classes. You should try to separate the variables and methods into two or more classes such that the new classes are more cohesive.
